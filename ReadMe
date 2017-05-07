@@ -1,4 +1,4 @@
-Reinforcement learning agent for learning to play to a modified version of blackjack
+Reinforcement learning agent for learning to play to easy 21 card game
 the code is structured in two main classes
 
 - Agent:
@@ -8,5 +8,24 @@ the code is structured in two main classes
   provides feedback to user's actions, by providing a state representation and a reward signal
 
 In order to test the system and see some relevant metrics concerning its performance
-you can run the file "testing.py"
+you can run the file "easy21.py", by running the command "python easy21.py"
 
+In order to specific algorithms. Open the easy21.py file and comment out the relevent functions in ___main___
+
+----------------
+
+Q: What are the pros and cons of bootstrap?
+A: Bootstrapping has less variance, since it depends on the current reward and intermediate steps more than only the end result. 
+However, there may be some bias, while Monte-Carlo is guaranteed to converge given enough examples.
+
+Q: Would you expect bootstrapping to help more in blackjack or Easy21?
+A: Easy21 has red cards that can move your total sum backwards, so its episodes will last longer overall than blackjack. 
+Therefore, bootstrapping will help more than in blackjack, where Monte-Carlo methods will work well since the episodes are short.
+
+Q: What are the pros and cons of function approximation in Easy21?
+A: Function approximation reduces the learning time since we have less variables we need to learn. 
+However, we lose some of the precision that was possible in a simple table lookup since the features are generalized.
+
+Q: How would you modify the function approximator suggested in this section to get better results in Easy21?
+A: The overlapping regions led to bad results, as a certain state could trigger multiple features,
+and the sum of their weights could lead to values greater than one, which is impossible to achieve in the game itself. The overlapping regions should be removed, as they do not bring any significant advantage.

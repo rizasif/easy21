@@ -21,7 +21,6 @@ class Environment:
         self.act_values = len(Actions.get_values())  # number of possible actions
 
     def get_initial_state(self):
-
         # First round: one black card each
         dl_first_card = self.draw_black_card()
         pl_first_card = self.draw_black_card()
@@ -29,7 +28,6 @@ class Environment:
         return s0
 
     def step(self, s, a):
-
         # Execute Action
         if a==Actions.hit:
             # Player draws a card
@@ -72,15 +70,21 @@ class Environment:
         return s2
 
     def draw_card(self):
-
         # draw a card, black with probability 2/3
-        if random.random() < 2.0/3:
+        if random.random() < 2.0/3.0:
             return self.draw_black_card()
         else:
-            return Card(Colors.red,random.randint(self.card_min,self.card_max))
+            return self.draw_red_card()
 
     def draw_black_card(self):
-
         # draw a black card
         return Card(Colors.black,random.randint(self.card_min,self.card_max))
 
+    def draw_red_card(self):
+        return Card(Colors.red,random.randint(self.card_min,self.card_max))
+
+    def get_hit_action(self):
+        return Actions.hit
+    
+    def get_stick_action(self):
+        return Actions.stick

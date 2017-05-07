@@ -18,10 +18,10 @@ class Agent:
     def __init__(self, environment, n0):
 
         # initialize variables
-        self.iter = 0
+        self.itr = 0
         self.n0 = float(n0)
         self.env = environment
-        self.method = ""
+        self.logic = ""
 
         # Linear approx cuboid feat borders
         self.d_edges = [[1,4],[4,7],[7,10]]
@@ -81,13 +81,13 @@ class Agent:
     def MC_control(self, iterations):
 
         # Initialise
-        self.iter = iterations
-        self.method = "MC_control"
+        self.itr = iterations
+        self.logic = "MC_control"
         count_wins = 0
         episode_pairs = []
 
         # Loop over episodes (complete game runs)
-        for episode in xrange(self.iter):
+        for episode in xrange(self.itr):
 
             # reset state action pair list
             episode_pairs = []
@@ -119,7 +119,7 @@ class Agent:
             #if episode%10000==0: print "Episode: %d, Reward: %d" %(episode, my_state.rew)
             count_wins = count_wins+1 if my_state.rew==1 else count_wins
 
-        print float(count_wins)/self.iter*100
+        print float(count_wins)/self.itr*100
 
         # Derive value function
         for d in xrange(self.env.dl_values):
@@ -131,11 +131,11 @@ class Agent:
     def TD_control(self, iterations, mlambda, avg_it):
 
         self.mlambda = float(mlambda)
-        self.iter = iterations
-        self.method = "Sarsa_control"
+        self.itr = iterations
+        self.logic = "Sarsa_control"
 
         l_mse = 0
-        e_mse = np.zeros((avg_it,self.iter))
+        e_mse = np.zeros((avg_it,self.itr))
 
         monte_carlo_Q = pickle.load(open("Data/Qval_func_1000000_MC_control.pkl", "rb"))
         n_elements = monte_carlo_Q.shape[0]*monte_carlo_Q.shape[1]*2
@@ -148,7 +148,7 @@ class Agent:
             count_wins = 0
 
             # Loop over episodes (complete game runs)
-            for episode in xrange(self.iter):
+            for episode in xrange(self.itr):
 
                 self.E = np.zeros((self.env.dl_values, self.env.pl_values, self.env.act_values))
                 s = self.env.get_initial_state()
@@ -188,13 +188,15 @@ class Agent:
 
                 e_mse[my_it, episode] = np.sum(np.square(self.Q-monte_carlo_Q))/float(n_elements)
 
-            print float(count_wins)/self.iter*100
+            print float(count_wins)/self.itr*100
             l_mse += np.sum(np.square(self.Q-monte_carlo_Q))/float(n_elements)
             #print n_elements
 
         if mlambda==0 or mlambda==1:
             plt.plot(e_mse.mean(axis=0))
-            plt.ylabel('mse vs episodes')
+            plt.ylabel('MSE')
+            plt.xlabel('EPISODES')
+            plt.suptitle('MSE Plot for 1000 Episodes')
             plt.show()
 
         # Derive value function
@@ -209,14 +211,14 @@ class Agent:
     def TD_control_linear(self, iterations, mlambda, avg_it):
 
         self.mlambda = float(mlambda)
-        self.iter = iterations
-        self.method = "Sarsa_control_linear_approx"
+        self.itr = iterations
+        self.logic = "Sarsa_control_linear_approx"
 
         epsilon = 0.05
         alpha = 0.01
 
         l_mse = 0
-        e_mse = np.zeros((avg_it,self.iter))
+        e_mse = np.zeros((avg_it,self.itr))
         monte_carlo_Q = pickle.load(open("Data/Qval_func_1000000_MC_control.pkl", "rb"))
         n_elements = monte_carlo_Q.shape[0]*monte_carlo_Q.shape[1]*2
 
@@ -229,7 +231,7 @@ class Agent:
             count_wins = 0
 
             # Loop over episodes (complete game runs)
-            for episode in xrange(self.iter):
+            for episode in xrange(self.itr):
 
                 self.LinE = np.zeros(36)
                 s = self.env.get_initial_state()
@@ -291,7 +293,7 @@ class Agent:
                 self.Q = self.deriveQ()
                 e_mse[my_it, episode] = np.sum(np.square(self.Q-monte_carlo_Q))/float(n_elements)
 
-            print float(count_wins)/self.iter*100
+            print float(count_wins)/self.itr*100
 
             self.Q = self.deriveQ()
             l_mse += np.sum(np.square(self.Q-monte_carlo_Q))
@@ -357,7 +359,7 @@ class Agent:
     # store state action table
     def store_Qvalue_function(self, linear=False):
 
-        pickle.dump(self.Q, open("Data/Qval_func_%s_%s.pkl" %(self.iter, self.method), "wb"))
+        pickle.dump(self.Q, open("Data/Qval_func_%s_%s.pkl" %(self.itr, self.logic), "wb"))
 
 
     # plot value function learnt
@@ -367,19 +369,22 @@ class Agent:
             return self.V[x,y]
 
         fig = plt.figure()
+        fig.suptitle('State Value Function', fontsize=14, fontweight='bold')
+
         ax = fig.add_subplot(111, projection='3d')
+        ax.set_xlabel("Dealer Showing")
+        ax.set_ylabel("Player Sum")
 
         X = np.arange(0, self.env.dl_values, 1)
         Y = np.arange(0, self.env.pl_values, 1)
         X,Y = np.meshgrid(X,Y)
         Z = get_stat_val(X,Y)
-        surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+        surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.cool, linewidth=0, antialiased=False)
         plt.show()
 
-        my_method = self.method
-        my_iterations = str(self.iter)
+        my_method = self.logic
+        my_iterations = str(self.itr)
         pickle.dump(self.V, open("Data/val_func_%s_%s.pkl" %(my_iterations, my_method), "wb"))
-
 
     def show_previous_statevalue_function(self, path):
         V = pickle.load(open(path,"rb"))
